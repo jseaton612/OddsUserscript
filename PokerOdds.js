@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         Poker Odds
 // @namespace    somethingintheshadows
-// @version      0.1.1
+// @version      0.1.2
 // @description  Poker Odds
 // @author       somethingintheshadows
 // @match        https://www.zyngapoker.com/*
 // @updateURL    https://raw.githubusercontent.com/jseaton612/OddsUserscript/master/PokerOdds.js
-// @downloadURL    https://raw.githubusercontent.com/jseaton612/OddsUserscript/master/PokerOdds.js
+// @downloadURL  https://raw.githubusercontent.com/jseaton612/OddsUserscript/master/PokerOdds.js
 // @grant        none
 // @run-at document-start
 // ==/UserScript==
@@ -33,6 +33,7 @@
             if (event.data.includes("dealHoles")) {
                 var holes = /%[\d-]+%([\d-]+)%([\d-]+)%([\d-]+)%([\d-]+)%([\d-]+)%[\d-]+%[\d-]+%[\d-]+%[\d-]+%/.exec(event.data);
                 console.log(holes);
+                console.log(event.data);
             } else if (event.data.includes("flop")) {
                 var cards = /\d%(\d+)%(\d)%(\d+)%(\d)%(\d+)%(\d)%/.exec(event.data);
                 for (var i = 2; i < cards.length; i += 2) {
