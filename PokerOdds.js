@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Poker Odds
 // @namespace    somethingintheshadows
-// @version      0.1.3
+// @version      0.2
 // @description  Poker Odds
 // @author       somethingintheshadows
 // @match        https://www.zyngapoker.com/*
@@ -12,6 +12,27 @@
 // ==/UserScript==
 
 (function() {
+    var Game = {
+        holeCards : [],
+        revealedCards : [],
+        playersAtTable : 0,
+        playersActive : 0,
+        newRound : function(cards) {
+            Game.holeCards = cards;
+            Game.revealedCards = [];
+            Game.playersActive = Game.playersAtTable;
+            console.log(Game);
+        },
+        reveal : function(cards) {
+            Game.revealedCards.push(cards);
+            console.log(Game);
+        },
+        fold : function() {
+            Game.playersActive--;
+            console.log(Game);
+        }
+    };
+
     var OrigWebSocket = window.WebSocket;
     var callWebSocket = OrigWebSocket.apply.bind(OrigWebSocket);
     var wsAddListener = OrigWebSocket.prototype.addEventListener;
@@ -30,25 +51,25 @@
         }
 
         wsAddListener(ws, "message", function(event) {
-            if (event.data.includes("dealHoles")) {
+            if (event.data.includes("dealHoles") && event.data.includes("4.0")) {
                 var holes = /%[\d-]+%4\.0%(\d+)%(\d+)%(\d+)%(\d+)%\d+%\d+%\d+%\d+%/.exec(event.data);
-                for (var i = 2; i < cards.length; i += 2) {
-                    switch (parseInt(cards[i])) {
+                for (var i = 2; i < holes.length; i += 2) {
+                    switch (parseInt(holes[i])) {
                     case 0:
-                        cards[i-1] += "D";
+                        holes[i-1] += "D";
                         break;
                     case 1:
-                        cards[i-1] += "H";
+                        holes[i-1] += "H";
                         break;
                     case 2:
-                        cards[i-1] += "S";
+                        holes[i-1] += "S";
                         break;
                     case 3:
-                        cards[i-1] += "C";
+                        holes[i-1] += "C";
                         break;
                     }
                 }
-                console.log(holes);
+                Game.newRound([holes[1], holes[3]]);
             } else if (event.data.includes("flop")) {
                 var cards = /\d%(\d+)%(\d)%(\d+)%(\d)%(\d+)%(\d)%/.exec(event.data);
                 for (var i = 2; i < cards.length; i += 2) {
@@ -67,7 +88,7 @@
                         break;
                     }
                 }
-                console.log(cards[1] + " " + cards[3] + " " + cards[5]);
+                Game.reveal([cards[1], cards[3], cards[5]]);
             } else if (event.data.includes("street") || event.data.includes("river")) {
                 var card = /\d%(\d+)%(\d)%/.exec(event.data);
                 switch (parseInt(card[2])) {
@@ -84,11 +105,11 @@
                     card[1] += "C";
                     break;
                 }
-                console.log(card[1]);
+                Game.reveal(card[1]);
             } else if (event.data.includes("sitsFilled")) {
-                console.log(/CDATA\[(\d)/.exec(event.data)[1] + " players");
+                Game.playersAtTable = parseInt(/CDATA\[(\d)/.exec(event.data)[1]);
             } else if (event.data.includes("fold")) {
-                console.log("Fold");
+                Game.fold();
             } else {console.log(event.data);}
         });
         return ws;
