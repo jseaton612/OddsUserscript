@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Poker Odds
 // @namespace    somethingintheshadows
-// @version      0.1.2
+// @version      0.1.3
 // @description  Poker Odds
 // @author       somethingintheshadows
 // @match        https://www.zyngapoker.com/*
@@ -31,9 +31,8 @@
 
         wsAddListener(ws, "message", function(event) {
             if (event.data.includes("dealHoles")) {
-                var holes = /%[\d-]+%([\d-]+)%([\d-]+)%([\d-]+)%([\d-]+)%([\d-]+)%[\d-]+%[\d-]+%[\d-]+%[\d-]+%/.exec(event.data);
+                var holes = /%[\d-]+%4\.0%(\d+)%(\d+)%(\d+)%(\d+)%\d+%\d+%\d+%\d+%/.exec(event.data);
                 console.log(holes);
-                console.log(event.data);
             } else if (event.data.includes("flop")) {
                 var cards = /\d%(\d+)%(\d)%(\d+)%(\d)%(\d+)%(\d)%/.exec(event.data);
                 for (var i = 2; i < cards.length; i += 2) {
