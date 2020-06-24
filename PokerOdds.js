@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Poker Odds
 // @namespace    somethingintheshadows
-// @version      0.2
+// @version      0.2.1
 // @description  Poker Odds
 // @author       somethingintheshadows
 // @match        https://www.zyngapoker.com/*
@@ -24,7 +24,7 @@
             console.log(Game);
         },
         reveal : function(cards) {
-            Game.revealedCards.push(cards);
+            Game.revealedCards = Game.revealedCards.concat(cards);
             console.log(Game);
         },
         fold : function() {
@@ -51,8 +51,8 @@
         }
 
         wsAddListener(ws, "message", function(event) {
-            if (event.data.includes("dealHoles") && event.data.includes("4.0")) {
-                var holes = /%[\d-]+%4\.0%(\d+)%(\d+)%(\d+)%(\d+)%\d+%\d+%\d+%\d+%/.exec(event.data);
+            if (event.data.includes("dealHoles") && event.data.includes(".0")) {
+                var holes = /%[\d-]+%\d\.0%(\d+)%(\d+)%(\d+)%(\d+)%\d+%\d+%\d+%\d+%/.exec(event.data);
                 for (var i = 2; i < holes.length; i += 2) {
                     switch (parseInt(holes[i])) {
                     case 0:
@@ -108,6 +108,8 @@
                 Game.reveal(card[1]);
             } else if (event.data.includes("sitsFilled")) {
                 Game.playersAtTable = parseInt(/CDATA\[(\d)/.exec(event.data)[1]);
+            } else if (event.data.includes("tableState")) {
+                Game.playersAtTable = event.data.match(/"fn"/g).length;
             } else if (event.data.includes("fold")) {
                 Game.fold();
             } else {console.log(event.data);}
