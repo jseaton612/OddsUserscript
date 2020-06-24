@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         Poker Odds
 // @namespace    somethingintheshadows
-// @version      0.1
+// @version      0.1.1
 // @description  Poker Odds
 // @author       somethingintheshadows
 // @match        https://www.zyngapoker.com/*
 // @updateURL    https://raw.githubusercontent.com/jseaton612/OddsUserscript/master/PokerOdds.js
+// @downloadURL    https://raw.githubusercontent.com/jseaton612/OddsUserscript/master/PokerOdds.js
 // @grant        none
 // @run-at document-start
 // ==/UserScript==
