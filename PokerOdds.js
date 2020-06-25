@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Poker Odds
 // @namespace    somethingintheshadows
-// @version      0.3.2
+// @version      0.3.3
 // @description  Poker Odds
 // @author       somethingintheshadows
 // @match        https://www.zyngapoker.com/*
@@ -54,10 +54,10 @@
                 method: "GET",
                 url: "https://raw.githubusercontent.com/christophschmalhofer/poker/master/XPokerEval/XPokerEval.TwoPlusTwo/HandRanks.dat",
                 onload: function(response) {
-                    Game.lookupTable = new Int32Array(new TextEncoder().encode(response.responseText));
+                    Game.lookupTable = new Int32Array(new TextEncoder().encode(response.responseText).buffer);
+                    console.log(Game.lookupTable);
                 }
             });
-            console.log(Game.lookupTable);
         }
     };
 
