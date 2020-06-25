@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Poker Odds
 // @namespace    somethingintheshadows
-// @version      0.3.5
+// @version      0.3.6
 // @description  Poker Odds
 // @author       somethingintheshadows
 // @match        https://www.zyngapoker.com/*
@@ -28,7 +28,7 @@
         },
         reveal: function(cards) {
             Game.revealedCards = Game.revealedCards.concat(cards);
-            Game.convertCards();
+            if (Game.holeCards.length > 0) {Game.convertCards();}
             if (Game.plus2hand.length === 7) {console.log(Game.plus2HandEval());}
             console.log(Game);
         },
@@ -42,7 +42,7 @@
                     Game.plus2hand[i] = (Game.holeCards[i] - 2) * 4 + Game.plus2Conversion[Game.holeCards[i].slice(-1)];
                 }
                 else if (i - 2 < Game.revealedCards.length){
-                    Game.plus2hand[i] = (Game.revealedCards[i - 2]) * 4 + Game.plus2Conversion[Game.holeCards[i].slice(-1)];
+                    Game.plus2hand[i] = (Game.revealedCards[i - 2]) * 4 + Game.plus2Conversion[Game.revealedCards[i - 2].slice(-1)];
                 }
                 else {
                     Game.plus2hand[i] = -1;
@@ -142,7 +142,7 @@
                 Game.playersAtTable = event.data.match(/"fn"/g).length;
             } else if (event.data.includes("fold")) {
                 Game.fold();
-            } //else {console.log(event.data);}
+            } else {console.log(event.data);}
         });
         return ws;
     }.bind();
