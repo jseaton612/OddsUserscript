@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name         Poker Odds
 // @namespace    somethingintheshadows
-// @version      0.3
+// @version      0.3.2
 // @description  Poker Odds
 // @author       somethingintheshadows
 // @match        https://www.zyngapoker.com/*
+// @connect      githubusercontent.com
 // @updateURL    https://raw.githubusercontent.com/jseaton612/OddsUserscript/master/PokerOdds.js
 // @downloadURL  https://raw.githubusercontent.com/jseaton612/OddsUserscript/master/PokerOdds.js
-// @grant        GM_xmlhttpRequest
+// @grant        GM.xmlHttpRequest
 // @run-at document-start
 // ==/UserScript==
 
@@ -51,7 +52,7 @@
         getPlus2File: function() {
             GM.xmlHttpRequest({
                 method: "GET",
-                url: "https://github.com/christophschmalhofer/poker/raw/master/XPokerEval/XPokerEval.TwoPlusTwo/HandRanks.dat",
+                url: "https://raw.githubusercontent.com/christophschmalhofer/poker/master/XPokerEval/XPokerEval.TwoPlusTwo/HandRanks.dat",
                 onload: function(response) {
                     Game.lookupTable = new Int32Array(new TextEncoder().encode(response.responseText));
                 }
