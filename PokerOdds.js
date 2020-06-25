@@ -58,8 +58,8 @@
                     console.log("Lookup Table Aquired! (hopefully)");
                 });
         },
-        plus2HandEval: function(hand) {
-            if (Game.lookupTable) {return Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[53 + hand[0]] + hand[1]] + hand[2]] + hand[3]] + hand[4]] + hand[5]] + hand[6]];}
+        plus2HandEval: function() {
+            if (Game.lookupTable) {return Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[53 + Game.plus2hand[0]] + Game.plus2hand[1]] + Game.plus2hand[2]] + Game.plus2hand[3]] + Game.plus2hand[4]] + Game.plus2hand[5]] + Game.plus2hand[6]];}
         }
     };
 
