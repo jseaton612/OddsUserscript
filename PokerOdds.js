@@ -30,7 +30,7 @@
         reveal: function(cards) {
             Game.revealedCards = Game.revealedCards.concat(cards);
             if (Game.holeCards.length > 0) {Game.convertCards();}
-            if (Game.plus2hand.length === 7) {console.log(Game.plus2HandEval());}
+            if (Game.plus2hand[6] > -1) {console.log(Game.plus2HandEval());}
             console.log(Game);
         },
         fold: function() {
