@@ -7,35 +7,35 @@
 // @match        https://www.zyngapoker.com/*
 // @updateURL    https://raw.githubusercontent.com/jseaton612/OddsUserscript/master/PokerOdds.js
 // @downloadURL  https://raw.githubusercontent.com/jseaton612/OddsUserscript/master/PokerOdds.js
-// @grant        none
+// @grant        GM_xmlhttpRequest
 // @run-at document-start
 // ==/UserScript==
 
 (function() {
     var Game = {
-        holeCards : [],
-        revealedCards : [],
-        plus2hand : [],
+        holeCards: [],
+        revealedCards: [],
+        plus2hand: [],
         plus2Conversion: {"C":1, "D":2, "H":3, "S":4},
-        playersAtTable : 0,
-        playersActive : 0,
-        newRound : function(cards) {
+        playersAtTable: 0,
+        playersActive: 0,
+        newRound: function(cards) {
             Game.holeCards = cards;
             Game.revealedCards = [];
             Game.playersActive = Game.playersAtTable;
             Game.convertCards();
             console.log(Game);
         },
-        reveal : function(cards) {
+        reveal: function(cards) {
             Game.revealedCards = Game.revealedCards.concat(cards);
             Game.convertCards();
             console.log(Game);
         },
-        fold : function() {
+        fold: function() {
             Game.playersActive--;
             console.log(Game);
         },
-        convertCards : function() {
+        convertCards: function() {
             for (var i = 0; i < 7; i++) {
                 if (i < 2) {
                     Game.plus2hand[i] = (Game.holeCards[i] - 2) * 4 + Game.plus2Conversion[Game.holeCards[i].slice(-1)];
@@ -48,16 +48,19 @@
                 }
             }
         },
-        getPlus2File : function() {
-            fetch("https://github.com/christophschmalhofer/poker/raw/master/XPokerEval/XPokerEval.TwoPlusTwo/HandRanks.dat")
-                .then(response => response.arrayBuffer())
-                .then(function(buffer) {
-                    Game.lookupTable = new Int32Array(buffer);
-                });
+        getPlus2File: function() {
+            GM.xmlHttpRequest({
+                method: "GET",
+                url: "https://github.com/christophschmalhofer/poker/raw/master/XPokerEval/XPokerEval.TwoPlusTwo/HandRanks.dat",
+                onload: function(response) {
+                    Game.lookupTable = new Int32Array(new TextEncoder().encode(response.responseText));
+                }
+            });
             console.log(Game.lookupTable);
         }
     };
 
+    Game.getPlus2File();
     var OrigWebSocket = window.WebSocket;
     var callWebSocket = OrigWebSocket.apply.bind(OrigWebSocket);
     var wsAddListener = OrigWebSocket.prototype.addEventListener;
