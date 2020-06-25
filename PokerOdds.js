@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Poker Odds
 // @namespace    somethingintheshadows
-// @version      0.2.1
+// @version      0.3
 // @description  Poker Odds
 // @author       somethingintheshadows
 // @match        https://www.zyngapoker.com/*
@@ -15,21 +15,46 @@
     var Game = {
         holeCards : [],
         revealedCards : [],
+        plus2hand : [],
+        plus2Conversion: {"C":1, "D":2, "H":3, "S":4},
         playersAtTable : 0,
         playersActive : 0,
         newRound : function(cards) {
             Game.holeCards = cards;
             Game.revealedCards = [];
             Game.playersActive = Game.playersAtTable;
+            Game.convertCards();
             console.log(Game);
         },
         reveal : function(cards) {
             Game.revealedCards = Game.revealedCards.concat(cards);
+            Game.convertCards();
             console.log(Game);
         },
         fold : function() {
             Game.playersActive--;
             console.log(Game);
+        },
+        convertCards : function() {
+            for (var i = 0; i < 7; i++) {
+                if (i < 2) {
+                    Game.plus2hand[i] = (Game.holeCards[i] - 2) * 4 + Game.plus2Conversion[Game.holeCards[i].slice(-1)];
+                }
+                else if (i - 2 < Game.revealedCards.length){
+                    Game.plus2hand[i] = (Game.revealedCards[i - 2]) * 4 + Game.plus2Conversion[Game.holeCards[i].slice(-1)];
+                }
+                else {
+                    Game.plus2hand[i] = -1;
+                }
+            }
+        },
+        getPlus2File : function() {
+            fetch("https://github.com/christophschmalhofer/poker/raw/master/XPokerEval/XPokerEval.TwoPlusTwo/HandRanks.dat")
+                .then(response => response.arrayBuffer())
+                .then(function(buffer) {
+                    Game.lookupTable = new Int32Array(buffer);
+                });
+            console.log(Game.lookupTable);
         }
     };
 
@@ -112,7 +137,7 @@
                 Game.playersAtTable = event.data.match(/"fn"/g).length;
             } else if (event.data.includes("fold")) {
                 Game.fold();
-            } else {console.log(event.data);}
+            } //else {console.log(event.data);}
         });
         return ws;
     }.bind();
