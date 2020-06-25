@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Poker Odds
 // @namespace    somethingintheshadows
-// @version      0.3.8
+// @version      0.4.0
 // @description  Poker Odds
 // @author       somethingintheshadows
 // @match        https://www.zyngapoker.com/*
@@ -19,11 +19,11 @@
         plus2hand: [],
         plus2Conversion: {"C":1, "D":2, "H":3, "S":4},
         playersAtTable: 0,
-        playersActive: 0,
+        otherPlayersActive: 0,
         newRound: function(cards) {
             Game.holeCards = cards;
             Game.revealedCards = [];
-            Game.playersActive = Game.playersAtTable;
+            Game.otherPlayersActive = Game.playersAtTable - 1;
             Game.convertCards();
             console.log(Game);
         },
@@ -34,7 +34,7 @@
             console.log(Game);
         },
         fold: function() {
-            Game.playersActive--;
+            Game.otherPlayersActive--;
             console.log(Game);
         },
         convertCards: function() {
@@ -58,11 +58,12 @@
                     console.log("Lookup Table Aquired! (hopefully)");
                 });
         },
-        plus2HandEval: function() {
-            if (Game.lookupTable) {return Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[53 + Game.plus2hand[0]] + Game.plus2hand[1]] + Game.plus2hand[2]] + Game.plus2hand[3]] + Game.plus2hand[4]] + Game.plus2hand[5]] + Game.plus2hand[6]];}
+        plus2HandEval: function(hand = Game.plus2hand) {
+            if (Game.lookupTable) {return Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[53 + hand[0]] + hand[1]] + hand[2]] + hand[3]] + hand[4]] + hand[5]] + hand[6]];}
         },
         plus2Eval: function() {
             var tableCards = [];
+            var winRates = [];
 
             if (Game.plus2hand[6] === -1) {
                 for (tableCards[0] = 1; tableCards[0] <= 52; tableCards[0]++) {
@@ -70,7 +71,7 @@
                         if (tableCards.length < 5) {
                             tableCards.concat(Game.plus2hand.slice(2, -1));
                         }
-                        Game.comparePlayerCards(tableCards);
+                        winRates.push(Game.comparePlayerCards(tableCards));
                         continue;
                     }
                     for (var card6 = 1; card6 <= 52; card6++) {
@@ -80,7 +81,7 @@
                             if (tableCards.length < 5) {
                                 tableCards.concat(Game.plus2hand.slice(2, -2));
                             }
-                            Game.comparePlayerCards(tableCards);
+                            winRates.push(Game.comparePlayerCards(tableCards));
                             continue;
                         }
                         for (var card5 = 1; card5 <= 52; card5++) {
@@ -90,7 +91,7 @@
                                 if (tableCards.length < 5) {
                                     tableCards.concat(Game.plus2hand.slice(3, -2));
                                 }
-                                Game.comparePlayerCards(tableCards);
+                                winRates.push(Game.comparePlayerCards(tableCards));
                                 continue;
                             }
                             for (var card4 = 1; card4 <= 52; card4++) {
@@ -99,17 +100,39 @@
                                 for (var card3 = 1; card3 <= 52; card3++) {
                                     if (tableCards.includes(card3)) {continue;}
                                     tableCards[4] = card3;
-                                    Game.comparePlayerCards(tableCards);
+                                    winRates.push(Game.comparePlayerCards(tableCards));
                                 }
                             }
                         }
                     }
                 }
+                return winRates.reduce((sum, cur) => sum + cur) / winRates.length;
             }
-            else {Game.comparePlayerCards();}
+            else {return Game.comparePlayerCards();}
         },
-        comparePlayerCards: function(table=Game.plus2hand.slice(2)) {
-            
+        // Attempt Monte Carlo here
+        comparePlayerCards: function(table=Game.plus2hand.slice(2), iterations=1000) {
+            var losses = 0;
+
+            for (var iter = 0; iter < iterations; iter++)
+            {
+                var possibleHoles = [];
+                var cards = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,43,44,45,46,47,48,49,50,51,52];
+                for (let i = 0; i < Game.otherPlayersActive; i++) {
+                    var randI = Math.floor(Math.random() * cards.length);
+                    possibleHoles[i].push(cards.splice(randI,1)[0]);
+                    randI = Math.floor(Math.random() * cards.length);
+                    possibleHoles[i].push(cards.splice(randI,1)[0]);
+                }
+                var playerScore = Game.plus2HandEval(Game.plus2hand.slice(0,2).concat(table));
+                for (var oppCards in possibleHoles) {
+                    if (Game.plus2HandEval(oppCards.concat(table)) > playerScore) {
+                        losses++;
+                        break;
+                    }
+                }
+            }
+            return (iterations - losses) / iterations;
         }
     };
 
@@ -133,8 +156,8 @@
 
         wsAddListener(ws, "message", function(event) {
             if (event.data.includes("dealHoles") && event.data.includes(".0")) {
-                var holes = /%[\d-]+%\d\.0%(\d+)%(\d+)%(\d+)%(\d+)%\d+%\d+%\d+%\d+%/.exec(event.data);
-                for (var i = 2; i < holes.length; i += 2) {
+                let holes = /%[\d-]+%\d\.0%(\d+)%(\d+)%(\d+)%(\d+)%\d+%\d+%\d+%\d+%/.exec(event.data);
+                for (let i = 2; i < holes.length; i += 2) {
                     switch (parseInt(holes[i])) {
                     case 0:
                         holes[i-1] += "D";
@@ -152,8 +175,8 @@
                 }
                 Game.newRound([holes[1], holes[3]]);
             } else if (event.data.includes("flop")) {
-                var cards = /\d%(\d+)%(\d)%(\d+)%(\d)%(\d+)%(\d)%/.exec(event.data);
-                for (var i = 2; i < cards.length; i += 2) {
+                let cards = /\d%(\d+)%(\d)%(\d+)%(\d)%(\d+)%(\d)%/.exec(event.data);
+                for (let i = 2; i < cards.length; i += 2) {
                     switch (parseInt(cards[i])) {
                     case 0:
                         cards[i-1] += "D";
@@ -171,7 +194,7 @@
                 }
                 Game.reveal([cards[1], cards[3], cards[5]]);
             } else if (event.data.includes("street") || event.data.includes("river")) {
-                var card = /\d%(\d+)%(\d)%/.exec(event.data);
+                let card = /\d%(\d+)%(\d)%/.exec(event.data);
                 switch (parseInt(card[2])) {
                 case 0:
                     card[1] += "D";
