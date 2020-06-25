@@ -60,6 +60,56 @@
         },
         plus2HandEval: function() {
             if (Game.lookupTable) {return Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[53 + Game.plus2hand[0]] + Game.plus2hand[1]] + Game.plus2hand[2]] + Game.plus2hand[3]] + Game.plus2hand[4]] + Game.plus2hand[5]] + Game.plus2hand[6]];}
+        },
+        plus2Eval: function() {
+            var tableCards = [];
+
+            if (Game.plus2hand[6] === -1) {
+                for (tableCards[0] = 1; tableCards[0] <= 52; tableCards[0]++) {
+                    if (Game.plus2hand[5] > -1) {
+                        if (tableCards.length < 5) {
+                            tableCards.concat(Game.plus2hand.slice(2, -1));
+                        }
+                        Game.comparePlayerCards(tableCards);
+                        continue;
+                    }
+                    for (var card6 = 1; card6 <= 52; card6++) {
+                        if (tableCards.includes(card6)) {continue;}
+                        tableCards[1] = card6;
+                        if (Game.plus2hand[4] > -1) {
+                            if (tableCards.length < 5) {
+                                tableCards.concat(Game.plus2hand.slice(2, -2));
+                            }
+                            Game.comparePlayerCards(tableCards);
+                            continue;
+                        }
+                        for (var card5 = 1; card5 <= 52; card5++) {
+                            if (tableCards.includes(card5)) {continue;}
+                            tableCards[2] = card5;
+                            if (Game.plus2hand[3] > -1) {
+                                if (tableCards.length < 5) {
+                                    tableCards.concat(Game.plus2hand.slice(3, -2));
+                                }
+                                Game.comparePlayerCards(tableCards);
+                                continue;
+                            }
+                            for (var card4 = 1; card4 <= 52; card4++) {
+                                if (tableCards.includes(card4)) {continue;}
+                                tableCards[3] = card4;
+                                for (var card3 = 1; card3 <= 52; card3++) {
+                                    if (tableCards.includes(card3)) {continue;}
+                                    tableCards[4] = card3;
+                                    Game.comparePlayerCards(tableCards);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else {Game.comparePlayerCards();}
+        },
+        comparePlayerCards: function(table=Game.plus2hand.slice(2)) {
+            
         }
     };
 
