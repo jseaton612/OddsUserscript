@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Poker Odds
 // @namespace    somethingintheshadows
-// @version      0.3.3
+// @version      0.3.4
 // @description  Poker Odds
 // @author       somethingintheshadows
 // @match        https://www.zyngapoker.com/*
@@ -53,8 +53,8 @@
                 .then(response => response.arrayBuffer())
                 .then(function(buffer) {
                     Game.lookupTable = new Int32Array(buffer);
+                    console.log(Game.lookupTable);
                 });
-            console.log(Game.lookupTable);
         }
     };
 
