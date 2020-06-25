@@ -8,7 +8,6 @@
 // @connect      githubusercontent.com
 // @updateURL    https://raw.githubusercontent.com/jseaton612/OddsUserscript/master/PokerOdds.js
 // @downloadURL  https://raw.githubusercontent.com/jseaton612/OddsUserscript/master/PokerOdds.js
-// @grant        GM.xmlHttpRequest
 // @run-at document-start
 // ==/UserScript==
 
@@ -36,7 +35,7 @@
             Game.playersActive--;
             console.log(Game);
         },
-        convertCards: function() {
+        convertCards : function() {
             for (var i = 0; i < 7; i++) {
                 if (i < 2) {
                     Game.plus2hand[i] = (Game.holeCards[i] - 2) * 4 + Game.plus2Conversion[Game.holeCards[i].slice(-1)];
@@ -49,15 +48,13 @@
                 }
             }
         },
-        getPlus2File: function() {
-            GM.xmlHttpRequest({
-                method: "GET",
-                url: "https://raw.githubusercontent.com/christophschmalhofer/poker/master/XPokerEval/XPokerEval.TwoPlusTwo/HandRanks.dat",
-                onload: function(response) {
-                    Game.lookupTable = new Int32Array(new TextEncoder().encode(response.responseText).buffer);
-                    console.log(Game.lookupTable);
-                }
-            });
+        getPlus2File : function() {
+            fetch("https://raw.githubusercontent.com/christophschmalhofer/poker/master/XPokerEval/XPokerEval.TwoPlusTwo/HandRanks.dat")
+                .then(response => response.arrayBuffer())
+                .then(function(buffer) {
+                    Game.lookupTable = new Int32Array(buffer);
+                });
+            console.log(Game.lookupTable);
         }
     };
 
