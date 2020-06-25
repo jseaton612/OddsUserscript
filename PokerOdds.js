@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Poker Odds
 // @namespace    somethingintheshadows
-// @version      0.3.7
+// @version      0.3.8
 // @description  Poker Odds
 // @author       somethingintheshadows
 // @match        https://www.zyngapoker.com/*
@@ -40,10 +40,10 @@
         convertCards: function() {
             for (var i = 0; i < 7; i++) {
                 if (i < 2) {
-                    Game.plus2hand[i] = (Game.holeCards[i] - 2) * 4 + Game.plus2Conversion[Game.holeCards[i].slice(-1)];
+                    Game.plus2hand[i] = (Game.holeCards[i].slice(0, -1) - 2) * 4 + Game.plus2Conversion[Game.holeCards[i].slice(-1)];
                 }
                 else if (i - 2 < Game.revealedCards.length){
-                    Game.plus2hand[i] = (Game.revealedCards[i - 2]) * 4 + Game.plus2Conversion[Game.revealedCards[i - 2].slice(-1)];
+                    Game.plus2hand[i] = (Game.revealedCards[i - 2].slice(0, -1) - 2) * 4 + Game.plus2Conversion[Game.revealedCards[i - 2].slice(-1)];
                 }
                 else {
                     Game.plus2hand[i] = -1;
