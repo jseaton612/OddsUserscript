@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name         Poker Odds
 // @namespace    somethingintheshadows
-// @version      0.3.6
+// @version      0.3.7
 // @description  Poker Odds
 // @author       somethingintheshadows
 // @match        https://www.zyngapoker.com/*
 // @connect      githubusercontent.com
 // @updateURL    https://raw.githubusercontent.com/jseaton612/OddsUserscript/master/PokerOdds.js
 // @downloadURL  https://raw.githubusercontent.com/jseaton612/OddsUserscript/master/PokerOdds.js
+// @grant none
 // @run-at document-start
 // ==/UserScript==
 
@@ -142,7 +143,7 @@
                 Game.playersAtTable = event.data.match(/"fn"/g).length;
             } else if (event.data.includes("fold")) {
                 Game.fold();
-            } else {console.log(event.data);}
+            } //else {console.log(event.data);}
         });
         return ws;
     }.bind();
