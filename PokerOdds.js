@@ -81,9 +81,8 @@
                         winRates.push(Game.comparePlayerCards(tableCards));
                         continue;
                     }
-                    for (var card6 = 1; card6 <= 52; card6++) {
-                        if (tableCards.includes(card6) || Game.plus2hand.includes(card6)) {continue;}
-                        tableCards[1] = card6;
+                    for (tableCards[1] = tableCards[0] + 1; tableCards[1] <= 52; tableCards[1]++) {
+                        if (Game.plus2hand.includes(tableCards[1])) {continue;}
                         if (Game.plus2hand[4] > -1) {
                             if (tableCards.length < 5) {
                                 tableCards = tableCards.concat(Game.plus2hand.slice(2, -2));
@@ -91,9 +90,8 @@
                             winRates.push(Game.comparePlayerCards(tableCards));
                             continue;
                         }
-                        for (var card5 = 1; card5 <= 52; card5++) {
-                            if (tableCards.includes(card5) || Game.plus2hand.includes(card5)) {continue;}
-                            tableCards[2] = card5;
+                        for (tableCards[2] = tableCards[1] + 1; tableCards[2] <= 52; tableCards[2]++) {
+                            if (Game.plus2hand.includes(tableCards[2])) {continue;}
                             if (Game.plus2hand[3] > -1) {
                                 if (tableCards.length < 5) {
                                     tableCards = tableCards.concat(Game.plus2hand.slice(3, -2));
@@ -101,12 +99,10 @@
                                 winRates.push(Game.comparePlayerCards(tableCards));
                                 continue;
                             }
-                            for (var card4 = 1; card4 <= 52; card4++) {
-                                if (tableCards.includes(card4) || Game.plus2hand.includes(card4)) {continue;}
-                                tableCards[3] = card4;
-                                for (var card3 = 1; card3 <= 52; card3++) {
-                                    if (tableCards.includes(card3) || Game.plus2hand.includes(card3)) {continue;}
-                                    tableCards[4] = card3;
+                            for (tableCards[3] = tableCards[2] + 1; tableCards[3] <= 52; tableCards[3]++) {
+                                if (Game.plus2hand.includes(tableCards[3])) {continue;}
+                                for (tableCards[4] = tableCards[3] + 1; tableCards[4] <= 52; tableCards[4]++) {
+                                    if (Game.plus2hand.includes(tableCards[4])) {continue;}
                                     winRates.push(Game.comparePlayerCards(tableCards));
                                 }
                             }
