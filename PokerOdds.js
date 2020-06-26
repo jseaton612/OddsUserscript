@@ -69,11 +69,12 @@
         plus2Eval: function() {
             var tableCards = [];
             var winRates = [];
+            var remainingCards = [];
+            for (let i = 1; i <= 52; i++) {if (!Game.plus2hand.includes(i)) {remainingCards.push(i);}}
 
             if (Game.plus2hand[6] === -1) {
-                for (tableCards[0] = 1; tableCards[0] <= 52; tableCards[0]++) {
-                    if (Game.plus2hand.includes(tableCards[0])) {continue;}
-                    console.log(tableCards[0]);
+                for (let card1 = 0; card1 < remainingCards.length; card1++) {
+                	tableCards[0] = remainingCards[card1];
                     if (Game.plus2hand[5] > -1) {
                         if (tableCards.length < 5) {
                             tableCards = tableCards.concat(Game.plus2hand.slice(2, -1));
@@ -81,8 +82,8 @@
                         winRates.push(Game.comparePlayerCards(tableCards));
                         continue;
                     }
-                    for (tableCards[1] = tableCards[0] + 1; tableCards[1] <= 52; tableCards[1]++) {
-                        if (Game.plus2hand.includes(tableCards[1])) {continue;}
+                    for (let card2 = card1 + 1; card2 < remainingCards.length; card2++) {
+                        tableCards[1] = remainingCards[card2];
                         if (Game.plus2hand[4] > -1) {
                             if (tableCards.length < 5) {
                                 tableCards = tableCards.concat(Game.plus2hand.slice(2, -2));
@@ -90,19 +91,19 @@
                             winRates.push(Game.comparePlayerCards(tableCards));
                             continue;
                         }
-                        for (tableCards[2] = tableCards[1] + 1; tableCards[2] <= 52; tableCards[2]++) {
-                            if (Game.plus2hand.includes(tableCards[2])) {continue;}
-                            if (Game.plus2hand[3] > -1) {
+                        for (let card3 = card2 + 1; card3 < remainingCards.length; card3++) {
+                            tableCards[2] = remainingCards[card3];
+                            if (Game.plus2hand[3] > -1) { //Remove after testing
                                 if (tableCards.length < 5) {
                                     tableCards = tableCards.concat(Game.plus2hand.slice(3, -2));
                                 }
                                 winRates.push(Game.comparePlayerCards(tableCards));
                                 continue;
                             }
-                            for (tableCards[3] = tableCards[2] + 1; tableCards[3] <= 52; tableCards[3]++) {
-                                if (Game.plus2hand.includes(tableCards[3])) {continue;}
-                                for (tableCards[4] = tableCards[3] + 1; tableCards[4] <= 52; tableCards[4]++) {
-                                    if (Game.plus2hand.includes(tableCards[4])) {continue;}
+                            for (let card4 = card3 + 1; card4 < remainingCards.length; card4++) {
+                                tableCards[3] = remainingCards[card4];
+                                for (let card5 = card4 + 1; card5 < remainingCards.length; card5++) {
+                                    tableCards[0] = remainingCards[card1];
                                     winRates.push(Game.comparePlayerCards(tableCards));
                                 }
                             }
