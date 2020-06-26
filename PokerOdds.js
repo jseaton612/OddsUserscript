@@ -13,25 +13,29 @@
 // ==/UserScript==
 
 (function() {
+    var counter = 0;
     var Game = {
-        holeCards: [],
+        holeCards: ["14C", "14D"],
         revealedCards: [],
         plus2hand: [],
         plus2Conversion: {"C":1, "D":2, "H":3, "S":4},
         playersAtTable: 0,
-        otherPlayersActive: 0,
+        otherPlayersActive: 1,
         newRound: function(cards) {
             Game.holeCards = cards;
             Game.revealedCards = [];
             Game.otherPlayersActive = Game.playersAtTable - 1;
             Game.convertCards();
-            console.log(Game);
+            console.log(Game.plus2Eval());
         },
         reveal: function(cards) {
             Game.revealedCards = Game.revealedCards.concat(cards);
-            if (Game.holeCards.length > 0) {Game.convertCards();}
-            if (Game.plus2hand[6] > -1) {console.log(Game.plus2HandEval());}
-            console.log(Game);
+            if (Game.holeCards.length > 0) {
+                Game.convertCards();
+                console.log(Game.plus2Eval());
+                console.log(counter);
+            }
+            else {console.log(Game);}
         },
         fold: function() {
             Game.otherPlayersActive--;
@@ -56,10 +60,11 @@
                 .then(function(buffer) {
                     Game.lookupTable = new Int32Array(buffer);
                     console.log("Lookup Table Aquired! (hopefully)");
+                    Game.reveal(["11D", "12D"]);
                 });
         },
         plus2HandEval: function(hand = Game.plus2hand) {
-            if (Game.lookupTable) {return Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[53 + hand[0]] + hand[1]] + hand[2]] + hand[3]] + hand[4]] + hand[5]] + hand[6]];}
+            if (Game.lookupTable) {counter++;return Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[53 + hand[0]] + hand[1]] + hand[2]] + hand[3]] + hand[4]] + hand[5]] + hand[6]];}
         },
         plus2Eval: function() {
             var tableCards = [];
@@ -67,38 +72,40 @@
 
             if (Game.plus2hand[6] === -1) {
                 for (tableCards[0] = 1; tableCards[0] <= 52; tableCards[0]++) {
+                    if (Game.plus2hand.includes(tableCards[0])) {continue;}
+                    console.log(tableCards[0]);
                     if (Game.plus2hand[5] > -1) {
                         if (tableCards.length < 5) {
-                            tableCards.concat(Game.plus2hand.slice(2, -1));
+                            tableCards = tableCards.concat(Game.plus2hand.slice(2, -1));
                         }
                         winRates.push(Game.comparePlayerCards(tableCards));
                         continue;
                     }
                     for (var card6 = 1; card6 <= 52; card6++) {
-                        if (tableCards.includes(card6)) {continue;}
+                        if (tableCards.includes(card6) || Game.plus2hand.includes(card6)) {continue;}
                         tableCards[1] = card6;
                         if (Game.plus2hand[4] > -1) {
                             if (tableCards.length < 5) {
-                                tableCards.concat(Game.plus2hand.slice(2, -2));
+                                tableCards = tableCards.concat(Game.plus2hand.slice(2, -2));
                             }
                             winRates.push(Game.comparePlayerCards(tableCards));
                             continue;
                         }
                         for (var card5 = 1; card5 <= 52; card5++) {
-                            if (tableCards.includes(card5)) {continue;}
+                            if (tableCards.includes(card5) || Game.plus2hand.includes(card5)) {continue;}
                             tableCards[2] = card5;
                             if (Game.plus2hand[3] > -1) {
                                 if (tableCards.length < 5) {
-                                    tableCards.concat(Game.plus2hand.slice(3, -2));
+                                    tableCards = tableCards.concat(Game.plus2hand.slice(3, -2));
                                 }
                                 winRates.push(Game.comparePlayerCards(tableCards));
                                 continue;
                             }
                             for (var card4 = 1; card4 <= 52; card4++) {
-                                if (tableCards.includes(card4)) {continue;}
+                                if (tableCards.includes(card4) || Game.plus2hand.includes(card4)) {continue;}
                                 tableCards[3] = card4;
                                 for (var card3 = 1; card3 <= 52; card3++) {
-                                    if (tableCards.includes(card3)) {continue;}
+                                    if (tableCards.includes(card3) || Game.plus2hand.includes(card3)) {continue;}
                                     tableCards[4] = card3;
                                     winRates.push(Game.comparePlayerCards(tableCards));
                                 }
@@ -111,22 +118,25 @@
             else {return Game.comparePlayerCards();}
         },
         // Attempt Monte Carlo here
-        comparePlayerCards: function(table=Game.plus2hand.slice(2), iterations=1000) {
+        comparePlayerCards: function(table=Game.plus2hand.slice(2), iterations=1) {
             var losses = 0;
+            var remainingCards = [];
+
+            for (let i = 1; i <= 52; i++) {if (!table.includes(i) && !Game.plus2hand.includes(i)) {remainingCards.push(i);}}
 
             for (var iter = 0; iter < iterations; iter++)
             {
                 var possibleHoles = [];
-                var cards = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,43,44,45,46,47,48,49,50,51,52];
+                var cards = remainingCards.slice();
                 for (let i = 0; i < Game.otherPlayersActive; i++) {
                     var randI = Math.floor(Math.random() * cards.length);
-                    possibleHoles[i].push(cards.splice(randI,1)[0]);
+                    possibleHoles[i] = [cards.splice(randI,1)[0]];
                     randI = Math.floor(Math.random() * cards.length);
                     possibleHoles[i].push(cards.splice(randI,1)[0]);
                 }
                 var playerScore = Game.plus2HandEval(Game.plus2hand.slice(0,2).concat(table));
-                for (var oppCards in possibleHoles) {
-                    if (Game.plus2HandEval(oppCards.concat(table)) > playerScore) {
+                for (let i = 0; i < possibleHoles.length; i++) {
+                    if (Game.plus2HandEval(possibleHoles[i].concat(table)) > playerScore) {
                         losses++;
                         break;
                     }
