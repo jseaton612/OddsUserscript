@@ -138,7 +138,7 @@
 
             for (let i = 1; i <= 52; i++) {if (!table.includes(i)) {remainingCards.push(i);}}
 
-            Game.getAllPlayerCards(0, remainingCards, playerCards);
+            Game.getAllPlayerCards(0, 0, remainingCards, playerCards);
 
             var playerScore = Game.plus2HandEval(table);
             for (let i = 0; i < playerCards.length; i++) {
@@ -152,8 +152,14 @@
             }
             return (total - losses) / total;
         },
-        getAllPlayerCards: function(n, remainingCards, ioCards) {
-            
+        getAllPlayerCards: function(n, start, remainingCards, outCards, inCards=[]) {
+            if (n === Game.otherPlayersActive * 2) {
+                outCards.push(inCards);
+                return;
+            }
+            for (let i = start; i < remainingCards.length; i++) {
+                getAllPlayerCards(n + 1, i + 1, remainingCards, outCards, inCards.slice().push(remainingCards[i]));
+            }
         }
 
     };
