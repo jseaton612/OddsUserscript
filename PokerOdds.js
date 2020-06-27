@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Poker Odds
 // @namespace    somethingintheshadows
-// @version      0.4.0
+// @version      0.5.0
 // @description  Poker Odds
 // @author       somethingintheshadows
 // @match        https://www.zyngapoker.com/*
@@ -14,7 +14,7 @@
 
 (function() {
     var Game = {
-        holeCards: [],
+        holeCards: ["14D", "13S"],
         revealedCards: [],
         plus2hand: [],
         plus2Conversion: {"C":1, "D":2, "H":3, "S":4},
@@ -32,6 +32,7 @@
             if (Game.holeCards.length > 0) {
                 Game.convertCards();
                 console.log(Game.plus2Eval());
+                console.log(Game.plus2EvalAll());
             }
         },
         fold: function() {
@@ -56,7 +57,7 @@
                 .then(function(buffer) {
                     Game.lookupTable = new Int32Array(buffer);
                     console.log("Lookup Table Aquired! (hopefully)");
-                    Game.newRound(["14C", "14D"]);
+                    Game.reveal(["14C", "14S", "6H", "9S"]);
                 });
         },
         plus2HandEval: function(hand = Game.plus2hand) {
@@ -129,6 +130,47 @@
                 }
             }
             return (iterations - losses) / iterations;
+        },
+        plus2EvalAll: function() {
+            var tableCards = Game.plus2hand.slice(0,2);
+            var winRates = [];
+            var remainingCards = [];
+            for (let i = 1; i <= 52; i++) {if (!Game.plus2hand.includes(i)) {remainingCards.push(i);}}
+
+            if (Game.plus2hand[6] === -1) {
+                for (let card1 = 0; card1 < remainingCards.length; card1++) {
+                    tableCards[2] = remainingCards[card1];
+                    if (Game.plus2hand[5] > -1) {
+                        if (tableCards.length < 7) {
+                            tableCards = tableCards.concat(Game.plus2hand.slice(2, -1));
+                        }
+                        winRates.push(Game.compareAllPlayerCards(tableCards));
+                        continue;
+                    }
+                    for (let card2 = card1 + 1; card2 < remainingCards.length; card2++) {
+                        tableCards[3] = remainingCards[card2];
+                        if (Game.plus2hand[4] > -1) {
+                            if (tableCards.length < 7) {
+                                tableCards = tableCards.concat(Game.plus2hand.slice(2, -2));
+                            }
+                            winRates.push(Game.compareAllPlayerCards(tableCards));
+                            continue;
+                        }
+                        for (let card3 = card2 + 1; card3 < remainingCards.length; card3++) {
+                            tableCards[4] = remainingCards[card3];
+                            for (let card4 = card3 + 1; card4 < remainingCards.length; card4++) {
+                                tableCards[5] = remainingCards[card4];
+                                for (let card5 = card4 + 1; card5 < remainingCards.length; card5++) {
+                                    tableCards[6] = remainingCards[card5];
+                                    winRates.push(Game.compareAllPlayerCards(tableCards));
+                                }
+                            }
+                        }
+                    }
+                }
+                return winRates.reduce((sum, cur) => sum + cur) / winRates.length;
+            }
+            else {return Game.compareAllPlayerCards();}
         },
         compareAllPlayerCards: function(table=Game.plus2hand) {
             var losses = 0;
