@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Poker Odds
 // @namespace    somethingintheshadows
-// @version      1.2.3
+// @version      1.3.0
 // @description  Poker Odds
 // @author       somethingintheshadows
 // @match        https://www.zyngapoker.com/*
@@ -194,9 +194,13 @@
         playersAtTable: 0,
         otherPlayersActive: 0,
         holeChances: [],
+        pot: 0,
+        blinds: 0,
         newRound: function(cards) {
             Game.holeCards = cards;
             Game.revealedCards = [];
+            Game.pot = Game.blinds;
+            Game.blinds = 0;
             Game.otherPlayersActive = Game.playersAtTable - 1;
             Game.convertCards();
             if (parseInt(cards[0].slice(0,-1)) < parseInt(cards[1].slice(0,-1))) {
@@ -383,7 +387,12 @@
                 Game.playersAtTable = event.data.match(/"fn"/g).length;
             } else if (event.data.includes("fold")) {
                 Game.fold();
-            } //else {console.log(event.data);}
+            } else if (event.data.includes("blindPosted")) {
+                Game.blinds += parseInt(/"b":(\d+)/.exec(event.data)[1]);
+            } else if (event.data.includes("call") || event.data.includes("raise")) {
+                Game.pot += parseInt(/\d\.\d%(\d+)%/.exec(event.data)[1]);
+            } else {console.log(event.data);return;}
+            console.log(Game.pot);
         });
         return ws;
     }.bind();
