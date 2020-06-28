@@ -52,7 +52,7 @@
         },
         holeWinChance: function() {
             // TODO
-        }
+        },
         getPlus2File: function() {
             fetch("https://raw.githubusercontent.com/christophschmalhofer/poker/master/XPokerEval/XPokerEval.TwoPlusTwo/HandRanks.dat")
                 .then(response => response.arrayBuffer())
@@ -95,10 +95,9 @@
             }
             else {return Game.comparePlayerCards();}
         },
-        // Confirmed 100% accurate
         comparePlayerCards: function(table=Game.plus2hand) {
             var losses = 0;
-            var total = 45*44/2
+            var total = 45*44/2;
             var chance = 1;
             var remainingCards = new Array(45);
             var playerScore = Game.plus2HandEval(table);
@@ -114,8 +113,9 @@
                 }
             }
             //Ties don't exist
-            var wins = total - losses
+            var wins = total - losses;
 
+            // Close enough
             for (let player = 0; player < Game.otherPlayersActive; player++) {
                 chance *= (wins - player) / (total - player);
             }
