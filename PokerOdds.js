@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Poker Odds
 // @namespace    somethingintheshadows
-// @version      1.2.0
+// @version      1.2.1
 // @description  Poker Odds
 // @author       somethingintheshadows
 // @match        https://www.zyngapoker.com/*
@@ -193,6 +193,7 @@
         plus2hand: [],
         playersAtTable: 0,
         otherPlayersActive: 0,
+        holeChances: [],
         newRound: function(cards) {
             Game.holeCards = cards;
             Game.revealedCards = [];
@@ -203,8 +204,8 @@
                 cards[0] = cards[1];
                 cards[1] = temp;
             }
-            if (cards[0].slice(-1) === cards[1].slice(-1)) {console.log(holeWinChance[0][cards[0].slice(0, -1) + cards[1].slice(0, -1)][Game.otherPlayersActive - 1]);}
-            else {console.log(holeWinChance[1][cards[0].slice(0, -1) + cards[1].slice(0, -1)][Game.otherPlayersActive - 1]);}
+            Game.holeChances = cards[0].slice(-1) === cards[1].slice(-1) ? holeWinChance[0][cards[0].slice(0, -1) + cards[1].slice(0, -1)] : holeWinChance[1][cards[0].slice(0, -1) + cards[1].slice(0, -1)];
+            console.log(Game.holeChances[Game.otherPlayersActive - 1]);
         },
         reveal: function(cards) {
             Game.revealedCards = Game.revealedCards.concat(cards);
@@ -214,7 +215,7 @@
             }
         },
         fold: function() {
-            Game.otherPlayersActive--;
+            console.log(Game.holeChances[--Game.otherPlayersActive]);
         },
         convertCards: function() {
             for (var i = 0; i < 7; i++) {
