@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Poker Odds
 // @namespace    somethingintheshadows
-// @version      1.2.1
+// @version      1.2.2
 // @description  Poker Odds
 // @author       somethingintheshadows
 // @match        https://www.zyngapoker.com/*
@@ -215,7 +215,7 @@
             }
         },
         fold: function() {
-            console.log(Game.holeChances[--Game.otherPlayersActive]);
+            console.log(Game.holeChances[--Game.otherPlayersActive - 1]);
         },
         convertCards: function() {
             for (var i = 0; i < 7; i++) {
