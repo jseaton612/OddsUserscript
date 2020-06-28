@@ -25,7 +25,7 @@
             Game.revealedCards = [];
             Game.otherPlayersActive = Game.playersAtTable - 1;
             Game.convertCards();
-            console.log(Math.round(100*Game.plus2Eval()));
+            console.log(Game.holeWinChance());
         },
         reveal: function(cards) {
             Game.revealedCards = Game.revealedCards.concat(cards);
@@ -50,6 +50,9 @@
                 }
             }
         },
+        holeWinChance: function() {
+            // TODO
+        }
         getPlus2File: function() {
             fetch("https://raw.githubusercontent.com/christophschmalhofer/poker/master/XPokerEval/XPokerEval.TwoPlusTwo/HandRanks.dat")
                 .then(response => response.arrayBuffer())
@@ -77,64 +80,23 @@
                         if (tableCards.length < 7) {
                             tableCards = tableCards.concat(Game.plus2hand.slice(2, -1));
                         }
-                        winRates.push(Game.compareAllPlayerCards(tableCards));
+                        winRates.push(Game.comparePlayerCards(tableCards));
                         continue;
                     }
                     for (let card2 = card1 + 1; card2 < remainingCards.length; card2++) {
                         tableCards[3] = remainingCards[card2];
-                        if (Game.plus2hand[4] > -1) {
-                            if (tableCards.length < 7) {
-                                tableCards = tableCards.concat(Game.plus2hand.slice(2, -2));
-                            }
-                            winRates.push(Game.compareAllPlayerCards(tableCards));
-                            continue;
+                        if (tableCards.length < 7) {
+                            tableCards = tableCards.concat(Game.plus2hand.slice(2, -2));
                         }
-                        for (let card3 = card2 + 1; card3 < remainingCards.length; card3++) {
-                            tableCards[4] = remainingCards[card3];
-                            for (let card4 = card3 + 1; card4 < remainingCards.length; card4++) {
-                                tableCards[5] = remainingCards[card4];
-                                for (let card5 = card4 + 1; card5 < remainingCards.length; card5++) {
-                                    tableCards[6] = remainingCards[card5];
-                                    winRates.push(Game.comparePlayerCards(tableCards));
-                                }
-                            }
-                        }
+                        winRates.push(Game.comparePlayerCards(tableCards));
                     }
                 }
                 return winRates.reduce((sum, cur) => sum + cur) / winRates.length;
             }
-            else {return Game.compareAllPlayerCards();}
-        },
-        // Attempt Monte Carlo here
-        comparePlayerCards: function(table=Game.plus2hand, iterations=1) {
-            var losses = 0;
-            var remainingCards = new Array(45);
-            var playerScore = Game.plus2HandEval(table);
-
-            let index = 0;
-            for (let i = 1; i <= 52; i++) {if (!table.includes(i)) {remainingCards[index++] = i;}}
-
-            for (var iter = 0; iter < iterations; iter++)
-            {
-                var possibleHoles = [];
-                var cards = remainingCards.slice();
-                for (let i = 0; i < Game.otherPlayersActive; i++) {
-                    var randI = Math.floor(Math.random() * cards.length);
-                    possibleHoles[i] = cards.splice(randI,1);
-                    randI = Math.floor(Math.random() * cards.length);
-                    possibleHoles[i].push(cards.splice(randI,1)[0]);
-                }
-                for (let i = 0; i < possibleHoles.length; i++) {
-                    if (Game.plus2HandEval2(possibleHoles[i][0], possibleHoles[i][1], table.slice()) > playerScore) {
-                        losses++;
-                        break;
-                    }
-                }
-            }
-            return (iterations - losses) / iterations;
+            else {return Game.comparePlayerCards();}
         },
         // Confirmed 100% accurate
-        compareAllPlayerCards: function(table=Game.plus2hand) {
+        comparePlayerCards: function(table=Game.plus2hand) {
             var losses = 0;
             var total = 45*44/2
             var chance = 1;
