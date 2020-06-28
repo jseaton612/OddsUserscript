@@ -58,8 +58,11 @@
                     console.log("Lookup Table Aquired! (hopefully)");
                 });
         },
-        plus2HandEval: function(hand = Game.plus2hand) {
+        plus2HandEval: function(hand) {
             if (Game.lookupTable) {return Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[53 + hand[0]] + hand[1]] + hand[2]] + hand[3]] + hand[4]] + hand[5]] + hand[6]];}
+        },
+        plus2HandEval2: function(hole1, hole2, table) {
+            if (Game.lookupTable) {return Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[53 + hole1] + hole2] + table[0]] + table[1]] + table[2]] + table[3]] + table[4]];}
         },
         plus2Eval: function() {
             var tableCards = Game.plus2hand.slice(0,2);
@@ -83,8 +86,7 @@
                             if (tableCards.length < 7) {
                                 tableCards = tableCards.concat(Game.plus2hand.slice(2, -2));
                             }
-                            if (Game.otherPlayersActive < 3) {winRates.push(Game.compareAllPlayerCards(tableCards));}
-                            else {winRates.push(Game.comparePlayerCards(tableCards, 10));}
+                            winRates.push(Game.compareAllPlayerCards(tableCards));
                             continue;
                         }
                         for (let card3 = card2 + 1; card3 < remainingCards.length; card3++) {
@@ -101,12 +103,13 @@
                 }
                 return winRates.reduce((sum, cur) => sum + cur) / winRates.length;
             }
-            else {return Game.comparePlayerCards();}
+            else {return Game.compareAllPlayerCards();}
         },
         // Attempt Monte Carlo here
         comparePlayerCards: function(table=Game.plus2hand, iterations=1) {
             var losses = 0;
             var remainingCards = [];
+            var playerScore = Game.plus2HandEval(table);
 
             for (let i = 1; i <= 52; i++) {if (!table.includes(i)) {remainingCards.push(i);}}
 
@@ -120,9 +123,8 @@
                     randI = Math.floor(Math.random() * cards.length);
                     possibleHoles[i].push(cards.splice(randI,1)[0]);
                 }
-                var playerScore = Game.plus2HandEval(table);
                 for (let i = 0; i < possibleHoles.length; i++) {
-                    if (Game.plus2HandEval(possibleHoles[i].concat(table.slice(2))) > playerScore) {
+                    if (Game.plus2HandEval2(possibleHoles[i][0], possibleHoles[i][1], table.slice(2)) > playerScore) {
                         losses++;
                         break;
                     }
@@ -130,37 +132,32 @@
             }
             return (iterations - losses) / iterations;
         },
+        // Confirmed 100% accurate
         compareAllPlayerCards: function(table=Game.plus2hand) {
             var losses = 0;
-            var total = 0;
+            var total = 45*44/2
+            var chance = 1;
             var remainingCards = [];
-            var playerCards = [];
+            var playerScore = Game.plus2HandEval(table);
 
             for (let i = 1; i <= 52; i++) {if (!table.includes(i)) {remainingCards.push(i);}}
 
-            Game.getAllPlayerCards(0, 0, remainingCards, playerCards);
-
-            var playerScore = Game.plus2HandEval(table);
-            for (let i = 0; i < playerCards.length; i++) {
-                for (let player = 0; player < Game.otherPlayersActive * 2; player += 2) {
-                    if (Game.plus2HandEval(playerCards[i].slice(player, player + 2).concat(table.slice(2))) > playerScore) {
+            for (let i = 0; i < remainingCards.length; i++) {
+                for(let j = i + 1; j < remainingCards.length; j++) {
+                    if (Game.plus2HandEval2(remainingCards[i], remainingCards[j], table.slice(2)) > playerScore) {
                         losses++;
-                        break;
                     }
                 }
-                total++;
             }
-            return (total - losses) / total;
+            //Ties don't exist
+            var wins = total - losses
+
+            for (let player = 0; player < Game.otherPlayersActive; player++) {
+                chance *= (wins - player) / (total - player);
+            }
+
+            return chance;
         },
-        getAllPlayerCards: function(n, start, remainingCards, outCards, inCards=[]) {
-            if (n === Game.otherPlayersActive * 2) {
-                outCards.push(inCards);
-                return;
-            }
-            for (let i = start; i < remainingCards.length; i++) {
-                Game.getAllPlayerCards(n + 1, i + 1, remainingCards, outCards, inCards.concat(remainingCards[i]));
-            }
-        }
 
     };
 
