@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Poker Odds
 // @namespace    somethingintheshadows
-// @version      1.0.0
+// @version      1.1.0
 // @description  Poker Odds
 // @author       somethingintheshadows
 // @match        https://www.zyngapoker.com/*
@@ -62,7 +62,7 @@
             if (Game.lookupTable) {return Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[53 + hand[0]] + hand[1]] + hand[2]] + hand[3]] + hand[4]] + hand[5]] + hand[6]];}
         },
         plus2HandEval2: function(hole1, hole2, table) {
-            if (Game.lookupTable) {return Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[53 + hole1] + hole2] + table[0]] + table[1]] + table[2]] + table[3]] + table[4]];}
+            if (Game.lookupTable) {return Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[Game.lookupTable[53 + hole1] + hole2] + table[2]] + table[3]] + table[4]] + table[5]] + table[6]];}
         },
         plus2Eval: function() {
             var tableCards = Game.plus2hand.slice(0,2);
@@ -108,10 +108,11 @@
         // Attempt Monte Carlo here
         comparePlayerCards: function(table=Game.plus2hand, iterations=1) {
             var losses = 0;
-            var remainingCards = [];
+            var remainingCards = new Array(45);
             var playerScore = Game.plus2HandEval(table);
 
-            for (let i = 1; i <= 52; i++) {if (!table.includes(i)) {remainingCards.push(i);}}
+            let index = 0;
+            for (let i = 1; i <= 52; i++) {if (!table.includes(i)) {remainingCards[index++] = i;}}
 
             for (var iter = 0; iter < iterations; iter++)
             {
@@ -124,7 +125,7 @@
                     possibleHoles[i].push(cards.splice(randI,1)[0]);
                 }
                 for (let i = 0; i < possibleHoles.length; i++) {
-                    if (Game.plus2HandEval2(possibleHoles[i][0], possibleHoles[i][1], table.slice(2)) > playerScore) {
+                    if (Game.plus2HandEval2(possibleHoles[i][0], possibleHoles[i][1], table.slice()) > playerScore) {
                         losses++;
                         break;
                     }
@@ -137,14 +138,15 @@
             var losses = 0;
             var total = 45*44/2
             var chance = 1;
-            var remainingCards = [];
+            var remainingCards = new Array(45);
             var playerScore = Game.plus2HandEval(table);
 
-            for (let i = 1; i <= 52; i++) {if (!table.includes(i)) {remainingCards.push(i);}}
+            let index = 0;
+            for (let i = 1; i <= 52; i++) {if (!table.includes(i)) {remainingCards[index++] = i;}}
 
             for (let i = 0; i < remainingCards.length; i++) {
                 for(let j = i + 1; j < remainingCards.length; j++) {
-                    if (Game.plus2HandEval2(remainingCards[i], remainingCards[j], table.slice(2)) > playerScore) {
+                    if (Game.plus2HandEval2(remainingCards[i], remainingCards[j], table.slice()) > playerScore) {
                         losses++;
                     }
                 }
