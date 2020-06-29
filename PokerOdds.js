@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Poker Odds
 // @namespace    somethingintheshadows
-// @version      1.3.2
+// @version      1.3.3
 // @description  Poker Odds
 // @author       somethingintheshadows
 // @match        https://www.zyngapoker.com/*
@@ -201,6 +201,7 @@
             Game.holeCards = cards;
             Game.revealedCards = [];
             Game.pot = Game.blinds;
+            Game.lastRaise = Game.blinds * 2/3;
             Game.blinds = 0;
             Game.otherPlayersActive = Game.playersAtTable - 1;
             Game.convertCards();
@@ -224,7 +225,6 @@
         fold: function() {
             if (Game.revealedCards.length === 0) {console.log("Win chance: " + Game.holeChances[--Game.otherPlayersActive - 1]);}
             else {console.log("Win chance: " + Math.round(100*Game.plus2Eval()));}
-            console.log("Pot odds: " + Math.round(Game.lastRaise / Game.pot * 100));
         },
         convertCards: function() {
             for (var i = 0; i < 7; i++) {
@@ -387,7 +387,7 @@
                 Game.reveal(card[1]);
             } else if (event.data.includes("sitsFilled")) {
                 Game.playersAtTable = parseInt(/CDATA\[(\d)/.exec(event.data)[1]);
-            } else if (event.data.includes("tableState")) {
+            } else if (event.data.includes("tableState") && event.data.includes("fn")) {
                 Game.playersAtTable = event.data.match(/"fn"/g).length;
             } else if (event.data.includes("fold")) {
                 Game.fold();
@@ -395,12 +395,14 @@
                 Game.blinds += parseInt(/"b":(\d+)/.exec(event.data)[1]);
             } else if (event.data.includes("call%")) {
                 Game.pot += parseInt(/\d\.\d%(\d+)%/.exec(event.data)[1]);
-            } else if (event.data.includes("raise%")) {
+                console.log("Pot odds: " + Math.round(Game.lastRaise / Game.pot * 100));
+            } else if (event.data.includes("raise%") || event.data.includes("allin%")) {
                 let raise = parseInt(/\d\.\d%(\d+)%/.exec(event.data)[1]);
                 Game.pot += raise;
                 Game.lastRaise = raise;
+                console.log("Pot odds: " + Math.round(Game.lastRaise / Game.pot * 100));
             } else if (event.data.includes("Pot")) {
-                Game.pot = parseInt(/1%(\d+)%1%/.exec(event.data)[1]);
+                Game.pot = parseInt(/\d%(\d+)%\d%/.exec(event.data)[1]);
             } //else {console.log(event.data)}
         });
         return ws;
