@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Poker Odds
 // @namespace    somethingintheshadows
-// @version      1.3.0
+// @version      1.3.2
 // @description  Poker Odds
 // @author       somethingintheshadows
 // @match        https://www.zyngapoker.com/*
@@ -196,6 +196,7 @@
         holeChances: [],
         pot: 0,
         blinds: 0,
+        lastRaise: 0,
         newRound: function(cards) {
             Game.holeCards = cards;
             Game.revealedCards = [];
@@ -209,18 +210,21 @@
                 cards[1] = temp;
             }
             Game.holeChances = cards[0].slice(-1) === cards[1].slice(-1) ? holeWinChance[0][cards[0].slice(0, -1) + cards[1].slice(0, -1)] : holeWinChance[1][cards[0].slice(0, -1) + cards[1].slice(0, -1)];
-            console.log(Game.holeChances[Game.otherPlayersActive - 1]);
+            console.log("Win chance: " + Game.holeChances[Game.otherPlayersActive - 1]);
+            console.log("Pot odds: " + Math.round(Game.lastRaise / Game.pot * 100));
         },
         reveal: function(cards) {
             Game.revealedCards = Game.revealedCards.concat(cards);
             if (Game.holeCards.length > 0) {
                 Game.convertCards();
-                console.log(Math.round(100*Game.plus2Eval()));
+                console.log("Win chance: " + Math.round(100*Game.plus2Eval()));
+                console.log("Pot odds: " + Math.round(Game.lastRaise / Game.pot * 100));
             }
         },
         fold: function() {
-            if (Game.revealedCards.length === 0) {console.log(Game.holeChances[--Game.otherPlayersActive - 1]);}
-            else {console.log(Math.round(100*Game.plus2Eval()));}
+            if (Game.revealedCards.length === 0) {console.log("Win chance: " + Game.holeChances[--Game.otherPlayersActive - 1]);}
+            else {console.log("Win chance: " + Math.round(100*Game.plus2Eval()));}
+            console.log("Pot odds: " + Math.round(Game.lastRaise / Game.pot * 100));
         },
         convertCards: function() {
             for (var i = 0; i < 7; i++) {
@@ -389,10 +393,15 @@
                 Game.fold();
             } else if (event.data.includes("blindPosted")) {
                 Game.blinds += parseInt(/"b":(\d+)/.exec(event.data)[1]);
-            } else if (event.data.includes("call") || event.data.includes("raise")) {
+            } else if (event.data.includes("call%")) {
                 Game.pot += parseInt(/\d\.\d%(\d+)%/.exec(event.data)[1]);
-            } else {console.log(event.data);return;}
-            console.log(Game.pot);
+            } else if (event.data.includes("raise%")) {
+                let raise = parseInt(/\d\.\d%(\d+)%/.exec(event.data)[1]);
+                Game.pot += raise;
+                Game.lastRaise = raise;
+            } else if (event.data.includes("Pot")) {
+                Game.pot = parseInt(/1%(\d+)%1%/.exec(event.data)[1]);
+            } //else {console.log(event.data)}
         });
         return ws;
     }.bind();
