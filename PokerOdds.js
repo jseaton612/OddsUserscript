@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Poker Odds
 // @namespace    somethingintheshadows
-// @version      1.4.0
+// @version      1.4.1
 // @description  Poker Odds
 // @author       somethingintheshadows
 // @match        https://www.zyngapoker.com/*
@@ -204,7 +204,6 @@
             Game.pot = 0;
             Game.bets = [0, 0, 0, 0, 0, 0, 0, 0, 0];
             Game.otherPlayersActive = Game.playersAtTable - 1;
-            console.log("New Round!");
         },
         newHoles: function(cards) {
             Game.holeCards = cards;
