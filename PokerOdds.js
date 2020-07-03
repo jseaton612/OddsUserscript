@@ -195,36 +195,29 @@
         otherPlayersActive: 0,
         holeChances: [],
         pot: 0,
-        blinds: 0,
-        lastRaise: 0,
-        newRound: function(cards) {
-            Game.holeCards = cards;
+        bets: [],
+        newRound: function() {
+            Game.holeCards = [];
             Game.revealedCards = [];
-            Game.pot = Game.blinds;
-            Game.lastRaise = Game.blinds * 2/3;
-            Game.blinds = 0;
+            Game.pot = 0;
+            Game.bets = [0, 0, 0, 0, 0, 0, 0, 0, 0];
             Game.otherPlayersActive = Game.playersAtTable - 1;
-            Game.convertCards();
+            console.log("New Round!");
+        },
+        newHoles: function(cards) {
+            Game.holeCards = cards;
             if (parseInt(cards[0].slice(0,-1)) < parseInt(cards[1].slice(0,-1))) {
                 let temp = cards[0];
                 cards[0] = cards[1];
                 cards[1] = temp;
             }
             Game.holeChances = cards[0].slice(-1) === cards[1].slice(-1) ? holeWinChance[0][cards[0].slice(0, -1) + cards[1].slice(0, -1)] : holeWinChance[1][cards[0].slice(0, -1) + cards[1].slice(0, -1)];
-            console.log("Win chance: " + Game.holeChances[Game.otherPlayersActive - 1]);
-            console.log("Pot odds: " + Math.round(Game.lastRaise / Game.pot * 100));
         },
         reveal: function(cards) {
             Game.revealedCards = Game.revealedCards.concat(cards);
-            if (Game.holeCards.length > 0) {
-                Game.convertCards();
-                console.log("Win chance: " + Math.round(100*Game.plus2Eval()));
-                console.log("Pot odds: " + Math.round(Game.lastRaise / Game.pot * 100));
-            }
         },
         fold: function() {
-            if (Game.revealedCards.length === 0) {console.log("Win chance: " + Game.holeChances[--Game.otherPlayersActive - 1]);}
-            else {console.log("Win chance: " + Math.round(100*Game.plus2Eval()));}
+            Game.otherPlayersActive--;
         },
         convertCards: function() {
             for (var i = 0; i < 7; i++) {
@@ -308,6 +301,22 @@
 
             return chance;
         },
+        calcPot: function() {
+            Game.pot += Game.bets.reduce((sum, cur) => sum + cur);
+            Game.bets = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+        },
+        update: function() {
+            if (Game.holeCards.length > 0) {
+                Game.convertCards();
+                if (Game.revealedCards.length > 0) {console.log("Win chance: " + Math.round(100*Game.plus2Eval()));}
+                else {console.log("Win chance: " + Game.holeChances[Game.otherPlayersActive - 1]);}
+                let effectivePot = Game.pot + Game.bets.reduce((sum, cur) => sum + cur);
+                console.log("Pot odds: " + Math.round(Math.max(...Game.bets) / effectivePot * 100));
+                // Debug
+                console.log("Pot: " + Game.pot);
+                console.log(Game.bets);
+            }
+        }
 
     };
 
@@ -330,8 +339,9 @@
         }
 
         wsAddListener(ws, "message", function(event) {
-            if (event.data.includes("dealHoles") && event.data.includes(".0")) {
-                let holes = /%[\d-]+%\d\.0%(\d+)%(\d+)%(\d+)%(\d+)%\d+%\d+%\d+%\d+%/.exec(event.data);
+            if (event.data.includes("inner")) {Game.newRound();}
+            else if (event.data.includes("dealHoles") && event.data.includes(".0")) {
+                let holes = /%[\d-]+%\d\.0%(\d+)%(\d+)%(\d+)%(\d+)%/.exec(event.data);
                 for (let i = 2; i < holes.length; i += 2) {
                     switch (parseInt(holes[i])) {
                     case 0:
@@ -348,7 +358,7 @@
                         break;
                     }
                 }
-                Game.newRound([holes[1], holes[3]]);
+                Game.newHoles([holes[1], holes[3]]);
             } else if (event.data.includes("flop")) {
                 let cards = /\d%(\d+)%(\d)%(\d+)%(\d)%(\d+)%(\d)%/.exec(event.data);
                 for (let i = 2; i < cards.length; i += 2) {
@@ -368,7 +378,8 @@
                     }
                 }
                 Game.reveal([cards[1], cards[3], cards[5]]);
-            } else if (event.data.includes("street") || event.data.includes("river")) {
+                Game.calcPot();
+            } else if (event.data.includes("street%") || event.data.includes("river%")) {
                 let card = /\d%(\d+)%(\d)%/.exec(event.data);
                 switch (parseInt(card[2])) {
                 case 0:
@@ -385,6 +396,7 @@
                     break;
                 }
                 Game.reveal(card[1]);
+                Game.calcPot();
             } else if (event.data.includes("sitsFilled")) {
                 Game.playersAtTable = parseInt(/CDATA\[(\d)/.exec(event.data)[1]);
             } else if (event.data.includes("tableState") && event.data.includes("fn")) {
@@ -392,18 +404,15 @@
             } else if (event.data.includes("fold")) {
                 Game.fold();
             } else if (event.data.includes("blindPosted")) {
-                Game.blinds += parseInt(/"b":(\d+)/.exec(event.data)[1]);
-            } else if (event.data.includes("call%")) {
-                Game.pot += parseInt(/\d\.\d%(\d+)%/.exec(event.data)[1]);
-                console.log("Pot odds: " + Math.round(Game.lastRaise / Game.pot * 100));
-            } else if (event.data.includes("raise%") || event.data.includes("allin%")) {
-                let raise = parseInt(/\d\.\d%(\d+)%/.exec(event.data)[1]);
-                Game.pot += raise;
-                Game.lastRaise = raise;
-                console.log("Pot odds: " + Math.round(Game.lastRaise / Game.pot * 100));
-            } else if (event.data.includes("Pot")) {
+                Game.bets[parseInt(/"s":(\d+)/.exec(event.data)[1])] = parseInt(/"b":(\d+)/.exec(event.data)[1]);
+            } else if (event.data.includes("call%") || event.data.includes("raise%") || event.data.includes("allin%")) {
+                let data = /(\d)\.0%(\d+)%/.exec(event.data);
+                Game.bets[parseInt(data[1])] = parseInt(data[2]);
+            } else if (event.data.includes("makePot")) {
                 Game.pot = parseInt(/\d%(\d+)%\d%/.exec(event.data)[1]);
-            } //else {console.log(event.data)}
+            } else if (event.data.includes("raiseOption")) {
+                Game.update();
+            } else {console.log(event.data)}
         });
         return ws;
     }.bind();
