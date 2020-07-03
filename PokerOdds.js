@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Poker Odds
 // @namespace    somethingintheshadows
-// @version      1.4.1
+// @version      1.4.2
 // @description  Poker Odds
 // @author       somethingintheshadows
 // @match        https://www.zyngapoker.com/*
@@ -410,6 +410,7 @@
             } else if (event.data.includes("markTurn") && myTurn) {
                 Game.mySeat = parseInt(/%-1%(\d)%0%10%/.exec(event.data)[1]);
                 Game.update();
+                myTurn = false;
             } else {myTurn = false;}
         });
         return ws;
