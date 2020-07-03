@@ -356,7 +356,7 @@
                     }
                 }
                 Game.newHoles([holes[1], holes[3]]);
-            } else if (event.data.includes("flop")) {
+            } else if (event.data.includes("flop%")) {
                 let cards = /\d%(\d+)%(\d)%(\d+)%(\d)%(\d+)%(\d)%/.exec(event.data);
                 for (let i = 2; i < cards.length; i += 2) {
                     switch (parseInt(cards[i])) {
