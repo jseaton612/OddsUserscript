@@ -13,6 +13,7 @@
 // ==/UserScript==
 
 (function() {
+    var myTurn = false;
     const holeWinChance = [{
         "1413": ["67.0", "50.7", "41.4", "35.4", "31.1", "27.7", "25.0", "22.7"],
         "1412": ["66.1", "49.4", "39.9", "33.7", "29.4", "26.0", "23.3", "21.1"],
@@ -313,10 +314,6 @@
             else {console.log("Win chance: " + Game.holeChances[Game.otherPlayersActive - 1]);}
             let effectivePot = Game.pot + Game.bets.reduce((sum, cur) => sum + cur);
             console.log("Pot odds: " + Math.round((Math.max(...Game.bets) - Game.bets[Game.mySeat]) / effectivePot * 100));
-            // Debug
-            console.log("Pot: " + Game.pot);
-            console.log(Game.bets);
-            console.log(Game.mySeat);
         }
 
     };
@@ -410,11 +407,11 @@
                 let data = /(\d)\.0%(\d+)%/.exec(event.data);
                 Game.bets[parseInt(data[1])] = parseInt(data[2]);
             } else if (event.data.includes("Option")) {
-                var next = true;
-            } else if (next && event.data.includes("markTurn")) {
+                myTurn = true;
+            } else if (event.data.includes("markTurn") && myTurn) {
                 Game.mySeat = parseInt(/%-1%(\d)%0%10%/.exec(event.data)[1]);
                 Game.update();
-            } else {next = false;}
+            } else {myTurn = false;}
         });
         return ws;
     }.bind();
