@@ -195,6 +195,7 @@
         otherPlayersActive: 0,
         holeChances: [],
         pot: 0,
+        mySeat: -1,
         bets: [],
         newRound: function() {
             Game.holeCards = [];
@@ -306,16 +307,15 @@
             Game.bets = [0, 0, 0, 0, 0, 0, 0, 0, 0];
         },
         update: function() {
-            if (Game.holeCards.length > 0) {
-                Game.convertCards();
-                if (Game.revealedCards.length > 0) {console.log("Win chance: " + Math.round(100*Game.plus2Eval()));}
-                else {console.log("Win chance: " + Game.holeChances[Game.otherPlayersActive - 1]);}
-                let effectivePot = Game.pot + Game.bets.reduce((sum, cur) => sum + cur);
-                console.log("Pot odds: " + Math.round(Math.max(...Game.bets) / effectivePot * 100));
-                // Debug
-                console.log("Pot: " + Game.pot);
-                console.log(Game.bets);
-            }
+            if (Game.mySeat === -1) {console.log("Seat detect failed!");}
+            Game.convertCards();
+            if (Game.revealedCards.length > 0) {console.log("Win chance: " + Math.round(100*Game.plus2Eval()));}
+            else {console.log("Win chance: " + Game.holeChances[Game.otherPlayersActive - 1]);}
+            let effectivePot = Game.pot + Game.bets.reduce((sum, cur) => sum + cur);
+            console.log("Pot odds: " + Math.round((Math.max(...Game.bets) - Game.bets[Game.mySeat]) / effectivePot * 100));
+            // Debug
+            console.log("Pot: " + Game.pot);
+            console.log(Game.bets);
         }
 
     };
@@ -408,11 +408,11 @@
             } else if (event.data.includes("call%") || event.data.includes("raise%") || event.data.includes("allin%")) {
                 let data = /(\d)\.0%(\d+)%/.exec(event.data);
                 Game.bets[parseInt(data[1])] = parseInt(data[2]);
-            } else if (event.data.includes("makePot")) {
-                Game.pot = parseInt(/\d%(\d+)%\d%/.exec(event.data)[1]);
             } else if (event.data.includes("raiseOption")) {
                 Game.update();
-            } else {console.log(event.data)}
+            } else if (event.data.includes("sitJoined")) {
+                Game.mySeat = parseInt(/[a-zA-Z]+%\d+%\d+%(\d)%/.exec(event.data)[1]);
+            }
         });
         return ws;
     }.bind();
