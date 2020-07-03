@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Poker Odds
 // @namespace    somethingintheshadows
-// @version      1.4.2
+// @version      1.4.3
 // @description  Poker Odds
 // @author       somethingintheshadows
 // @match        https://www.zyngapoker.com/*
@@ -307,12 +307,14 @@
             Game.bets = [0, 0, 0, 0, 0, 0, 0, 0, 0];
         },
         update: function() {
-            if (Game.mySeat === -1) {console.log("Seat detect failed!");}
-            Game.convertCards();
-            if (Game.revealedCards.length > 0) {console.log("Win chance: " + Math.round(100*Game.plus2Eval()));}
-            else {console.log("Win chance: " + Game.holeChances[Game.otherPlayersActive - 1]);}
-            let effectivePot = Game.pot + Game.bets.reduce((sum, cur) => sum + cur);
-            console.log("Pot odds: " + Math.round((Math.max(...Game.bets) - Game.bets[Game.mySeat]) / effectivePot * 100));
+            if (Game.holeCards) {
+                if (Game.mySeat === -1) {console.log("Seat detect failed!");}
+                Game.convertCards();
+                if (Game.revealedCards.length > 0) {console.log("Win chance: " + Math.round(100*Game.plus2Eval()));}
+                else {console.log("Win chance: " + Game.holeChances[Game.otherPlayersActive - 1]);}
+                let effectivePot = Game.pot + Game.bets.reduce((sum, cur) => sum + cur);
+                console.log("Pot odds: " + Math.round((Math.max(...Game.bets) - Game.bets[Game.mySeat]) / effectivePot * 100));
+            }
         }
 
     };
