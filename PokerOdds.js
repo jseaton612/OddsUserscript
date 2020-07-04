@@ -307,7 +307,7 @@
             Game.bets = [0, 0, 0, 0, 0, 0, 0, 0, 0];
         },
         update: function() {
-            if (Game.holeCards) {
+            if (Game.holeCards.length > 0) {
                 if (Game.mySeat === -1) {console.log("Seat detect failed!");}
                 Game.convertCards();
                 if (Game.revealedCards.length > 0) {console.log("Win chance: " + Math.round(100*Game.plus2Eval()));}
