@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Poker Odds
 // @namespace    somethingintheshadows
-// @version      1.4.3
+// @version      1.4.4
 // @description  Poker Odds
 // @author       somethingintheshadows
 // @match        https://www.zyngapoker.com/*
